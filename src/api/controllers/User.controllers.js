@@ -150,6 +150,25 @@ const forgotPassword = async (req, res, next) => {
 };
 const ChangePassword = async (req, res, next) => {
   try {
+    const { password, newPassword } = req.body;
+    const { _id } = req.user;
+    if (bcrypt.compareSync(password, req.user.password)){
+      const newPasswordHashed = bcrypt.hashSync(newPassword, 10);
+      await User.findByIdAndUpdate (_id, {password: newPasswordHashed});
+      const newUserUpdate = await user.findById(_id);
+        if(bcrypt.compareSync(newPassword, newUserUpdate.password)) {
+          return res.status(200).json({
+            userUpdate: true
+          });
+        }else{
+          return res.status(200).json({
+            userUpdate: false
+          });
+        }
+        
+      }else{
+         return res.status(404).json("no coincide password") 
+      }
   } catch (error) {
     return next(error);
   }

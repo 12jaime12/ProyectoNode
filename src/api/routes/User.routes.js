@@ -19,6 +19,7 @@ UserRoutes.get('/register', upload.single('image'), register);
 UserRoutes.post('/confirm/:id', verificarCodigo);
 UserRoutes.post('/login', login);
 UserRoutes.delete('/', [isAuth], deleteUser);
+UserRoutes.patch('/', [isAuth], ChangePassword)
 //-------------------------redirects------------------------
 
 UserRoutes.get('/register/sendMail/:id', sendCode);
