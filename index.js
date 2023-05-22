@@ -10,6 +10,9 @@ const app = express();
 const PORT = process.env.PORT;
 
 const cors = require('cors');
+const AsignaturasRoutes = require('./src/api/routes/Asignaturas.routes');
+const NotasRoutes = require('./src/api/routes/Notas.routes');
+const UserRoutes = require('./src/api/routes/User.routes');
 app.use(
   cors({
     origin: '*',
@@ -21,6 +24,9 @@ app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 //routes
+app.use('/api/v1/asignaturas/', AsignaturasRoutes);
+app.use('/api/v1/notas/', NotasRoutes);
+app.use('/api/v1/user/', UserRoutes);
 
 app.use('*', (req, res, next) => {
   const error = new Error('Route not found');
