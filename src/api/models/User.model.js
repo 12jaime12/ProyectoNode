@@ -32,11 +32,6 @@ const UserSchema = new mongoose.Schema(
     image: {
       type: String,
     },
-    curso: {
-      type: String,
-      enum: ['1ESO', '2ESO', '3ESO', '4ESO'],
-      required: true,
-    },
     asignaturas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Asignatura' }],
     notas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Nota' }],
     confirmationCode: {
