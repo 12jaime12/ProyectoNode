@@ -47,7 +47,6 @@ const sendCode = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userDB = await User.findById(id);
-    console.log(userDB);
     const emailEnv = process.env.EMAIL;
     const password = process.env.PASSWORD;
 
@@ -90,9 +89,8 @@ const verificarCodigo = async (req, res, next) => {
     const userFalse = await User.findById(id);
     const { code } = req.body;
     if (userFalse.confirmationCode === code) {
-      userFalse.check = true;
-      await userFalse.save();
-      return res.status(200).json(userFalse);
+      await User.findByIdAndUpdate(id, { check: true });
+      return res.status(200).json(await User.findById(id));
     } else {
       const userNotExist = await User.findByIdAndDelete(id);
       if (userNotExist) {
@@ -113,28 +111,29 @@ const verificarCodigo = async (req, res, next) => {
     return next(error);
   }
 };
-const login = async (req, res, next) => {
+const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const userToLogin = await User.findOne({ email });
 
     if (userToLogin) {
-      //if (bcrypt.compareSync(password, userToLogin.password)) {
-      if (userToLogin.check === true) {
-        const token = generateToken(userToLogin._id, email);
-        return res.status(200).json({
-          user: {
-            email,
-            _id: userToLogin._id,
-          },
-          token,
-        });
+      if (bcrypt.compareSync(password, userToLogin.password)) {
+        const user = await User.findById(userToLogin._id);
+        if (user.check == true) {
+          const token = generateToken(userToLogin._id, email);
+          return res.status(200).json({
+            user: {
+              email,
+              _id: userToLogin._id,
+            },
+            token,
+          });
+        } else {
+          return res.status(404).json('user no verificado');
+        }
       } else {
-        return res.status(404).json('user no verificado');
+        return res.status(404).json('las contraseña no coincide');
       }
-      // } else {
-      //   return res.status(404).json('las contraseña no coincide');
-      // }
     } else {
       return res.status(404).json('user no registrado');
     }
@@ -180,7 +179,6 @@ const update = async (req, res, next) => {
 };
 const deleteUser = async (req, res, next) => {
   try {
-    console.log(req.user);
     const { _id, image } = req.user;
     const deleteUser = await User.findByIdAndDelete(_id);
     if (deleteUser) {
@@ -216,7 +214,7 @@ const getUsuariosCurso = async (req, res, next) => {
 module.exports = {
   register,
   verificarCodigo,
-  login,
+  loginUser,
   forgotPassword,
   ChangePassword,
   update,
