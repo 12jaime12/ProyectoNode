@@ -26,7 +26,6 @@ const isAuthAdmin = async (req, res, next) => {
 
   try {
     const decoded = verifyToken(token, process.env.JWT_SECRET);
-    console.log(decoded);
     req.user = await User.findById(decoded.id);
     if (req.user.rol !== 'admin') {
       return next(new Error('Unauthorized, not admin'));
@@ -44,7 +43,6 @@ const isAuthAlumn = async (req, res, next) => {
 
   try {
     const decoded = verifyToken(token, process.env.JWT_SECRET);
-    console.log(decoded);
     req.user = await User.findById(decoded.id);
     if (req.user.rol !== 'alumn') {
       return next(new Error('Unauthorized, not alumn'));
@@ -62,7 +60,6 @@ const isAuthTeacher = async (req, res, next) => {
 
   try {
     const decoded = verifyToken(token, process.env.JWT_SECRET);
-    console.log(decoded);
     req.user = await User.findById(decoded.id);
     if (req.user.rol !== 'teacher') {
       return next(new Error('Unauthorized, not teacher'));
