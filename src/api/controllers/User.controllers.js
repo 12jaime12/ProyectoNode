@@ -143,6 +143,15 @@ const loginUser = async (req, res, next) => {
 };
 const forgotPassword = async (req, res, next) => {
   try {
+    const { email } = req.body
+    const userDb = await User.findOne({email})
+    if(userDb){
+      return res.redirect(
+        `http://localhost:8087/api/v1/user/sendPassword/${userDb._id}`
+      )
+    }else{
+      return res.status(404).json("usuario no registrado")
+    }
   } catch (error) {
     return next(error);
   }
