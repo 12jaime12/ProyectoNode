@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 const { generateToken } = require('../../utils/token');
+const randomPassword = require('../../utils/randomPassword');
 dotenv.config();
 
 const register = async (req, res, next) => {
@@ -41,7 +42,6 @@ const register = async (req, res, next) => {
     return next(error);
   }
 };
-
 //---------------------redirect----------------sendCode----------------------------
 const sendCode = async (req, res, next) => {
   try {
@@ -119,18 +119,14 @@ const loginUser = async (req, res, next) => {
     if (userToLogin) {
       if (bcrypt.compareSync(password, userToLogin.password)) {
         const user = await User.findById(userToLogin._id);
-        if (user.check == true) {
-          const token = generateToken(userToLogin._id, email);
-          return res.status(200).json({
-            user: {
-              email,
-              _id: userToLogin._id,
-            },
-            token,
-          });
-        } else {
-          return res.status(404).json('user no verificado');
-        }
+        const token = generateToken(userToLogin._id, email);
+        return res.status(200).json({
+          user: {
+            email,
+            _id: userToLogin._id,
+          },
+          token,
+        });
       } else {
         return res.status(404).json('las contraseña no coincide');
       }
@@ -143,15 +139,64 @@ const loginUser = async (req, res, next) => {
 };
 const forgotPassword = async (req, res, next) => {
   try {
-    const { email } = req.body
-    const userDb = await User.findOne({email})
-    if(userDb){
+    const { email } = req.body;
+    const userDb = await User.findOne({ email });
+    if (userDb) {
       return res.redirect(
         `http://localhost:8087/api/v1/user/sendPassword/${userDb._id}`
-      )
-    }else{
-      return res.status(404).json("usuario no registrado")
+      );
+    } else {
+      return res.status(404).json('usuario no registrado');
     }
+  } catch (error) {
+    return next(error);
+  }
+};
+//---------------redirect-----------sendPassword-------------------
+const sendPassword = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    const EMAIL = process.env.EMAIL;
+    const PASSWORD = process.env.PASSWORD;
+
+    let password2 = randomPassword();
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: EMAIL,
+        pass: PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: EMAIL,
+      to: user.email,
+      subject: 'Contraseña nueva VirtualSchool',
+      text: `${user.name} Aqui tienes tu contraseña de un solo uso ${password2} Recuerde cambiarla una vez inicies sesión`,
+    };
+
+    transporter.sendMail(mailOptions, async (error, info) => {
+      if (error) {
+        return res.status(404).json('no se ha enviado el email');
+      } else {
+        const newPasswordHash = bcrypt.hashSync(password2, 10);
+        await User.findByIdAndUpdate(id, { password: newPasswordHash });
+        const userUpdate = await User.findById(id);
+        if (bcrypt.compareSync(password2, userUpdate.password)) {
+          return res.status(200).json({
+            updateUser: true,
+            sendPassword: true,
+          });
+        } else {
+          return res.status(404).json({
+            updateUser: false,
+            sendPassword: true,
+          });
+        }
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -181,8 +226,26 @@ const ChangePassword = async (req, res, next) => {
   }
 };
 const update = async (req, res, next) => {
+  let catchImg = req.file?.path;
   try {
+    const newUser = new User(req.body);
+    if (req.file) {
+      newUser.image = req.file.path;
+    }
+    newUser._id = req.user._id;
+    newUser.password = req.user.password;
+    newUser.rol = req.user.rol;
+
+    const saveUser = await User.findByIdAndUpdate(req.user._id, newUser);
+    if (req.file) {
+      deleteImgCloudinary(req.user.image);
+    }
+
+    const userUpdate = await User.findById(req.user._id);
+
+    return res.status(200).json(userUpdate);
   } catch (error) {
+    deleteImgCloudinary(catchImg);
     return next(error);
   }
 };
@@ -207,12 +270,6 @@ const deleteUser = async (req, res, next) => {
     return next(error);
   }
 };
-const logout = async (req, res, next) => {
-  try {
-  } catch (error) {
-    return next(error);
-  }
-};
 const getUsuariosCurso = async (req, res, next) => {
   try {
   } catch (error) {
@@ -228,7 +285,7 @@ module.exports = {
   ChangePassword,
   update,
   deleteUser,
-  logout,
   getUsuariosCurso,
   sendCode,
+  sendPassword,
 };

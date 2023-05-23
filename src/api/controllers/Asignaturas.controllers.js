@@ -1,4 +1,6 @@
 const Asignatura = require('../models/Asignaturas.model');
+const User = require('../models/User.model');
+const Notas = require('../models/Notas.model');
 
 const create = async (req, res, next) => {
   try {
@@ -26,7 +28,7 @@ const deleteAsignatura = async (req, res, next) => {
         test: (await Asignatura.findById(id)) ? 'no ok delete' : 'ok delete',
       });
     } else {
-      return res.status(404).json('no se ha encontrado la asignatura');
+      return res.status(404).json('no se ha encontrado el id de la asignatura');
     }
   } catch (error) {
     return next(error);
@@ -34,16 +36,25 @@ const deleteAsignatura = async (req, res, next) => {
 };
 const addAlumn = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; //id asignatura
     const { idAlumn } = req.body;
 
-    const asignatura = await Asignatura.findById(id);
-    const length1 = asignatura.alumn.length;
-    asignatura.alumn.push(idAlumn);
-    const length2 = asignatura.alumn.length;
-    if (length1 + 1 === length2) {
-      asignatura.save();
-      return res.status(200).json(asignatura);
+    const alumn = await User.findById(idAlumn);
+    const asignaturaNoUpdate = await Asignatura.findById(id);
+
+    await asignaturaNoUpdate.updateOne({
+      $push: { alumn: alumn._id },
+    });
+
+    await alumn.updateOne({
+      $push: { asignaturas: asignaturaNoUpdate._id },
+    });
+
+    const asignaturaUpdate = await Asignatura.find({ alumn: alumn._id });
+    console.log(asignaturaUpdate);
+
+    if (asignaturaUpdate) {
+      return res.status(200).json(asignaturaUpdate);
     } else {
       return res.status(404).json('error al añadir alumno');
     }
@@ -53,9 +64,55 @@ const addAlumn = async (req, res, next) => {
 };
 const addTeacher = async (req, res, next) => {
   try {
+    const { idteacher } = req.body;
+    const { id } = req.params; //id asignatura
+    const asignaturaNoUpdate = await Asignatura.findById(id);
+    const teacher = await User.findById(idteacher);
+
+    await asignaturaNoUpdate.updateOne({
+      $push: { teacher: teacher._id },
+    });
+
+    await teacher.updateOne({
+      $push: { asignaturas: asignaturaNoUpdate._id },
+    });
+
+    const asignaturaUpdate = await Asignatura.findById(id);
+    if (asignaturaUpdate.teacher.length > 0) {
+      return res.status(200).json(asignaturaUpdate);
+    } else {
+      return res.status(404).json('no se ha introducido correctamente');
+    }
   } catch (error) {
     return next(error);
   }
 };
+const getNotasCurso = async (req, res, next) => {
+  try {
+    const { curso } = req.params;
+    const findNotas = await Notas.find({ alumn: req.user._id }).populate(
+      'asignatura'
+    );
+    const arrayAux = [];
+    findNotas.forEach((element) => {
+      if (element.asignatura.curso === curso) {
+        arrayAux.push({ [element.asignatura.name]: element.nota });
+      }
+    });
+    return res.status(200).json(arrayAux);
+  } catch (error) {
+    return next(error);
+  }
+};
+const getAlumnosAsignatura = async (req, res, next) => {
+  try {
+  } catch (error) {}
+};
 
-module.exports = { create, deleteAsignatura, addTeacher, addAlumn };
+module.exports = {
+  create,
+  deleteAsignatura,
+  addTeacher,
+  addAlumn,
+  getNotasCurso,
+};
