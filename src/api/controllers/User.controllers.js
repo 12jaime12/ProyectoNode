@@ -235,6 +235,7 @@ const update = async (req, res, next) => {
     newUser._id = req.user._id;
     newUser.password = req.user.password;
     newUser.rol = req.user.rol;
+    newUser.gender = req.user.gender;
 
     const saveUser = await User.findByIdAndUpdate(req.user._id, newUser);
     if (req.file) {

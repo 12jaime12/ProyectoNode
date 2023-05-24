@@ -4,6 +4,7 @@ const Notas = require('../models/Notas.model');
 
 const create = async (req, res, next) => {
   try {
+    await Asignatura.syncIndexes();
     const newAsignatura = new Asignatura(req.body);
     const AsignaturaSave = await newAsignatura.save();
     if (AsignaturaSave) {
@@ -19,6 +20,13 @@ const deleteAsignatura = async (req, res, next) => {
   try {
     const { id } = req.params;
     const AsignaturaDelete = await Asignatura.findByIdAndDelete(id);
+
+    const alumns = await User.find({ asignaturas: id });
+    alumns.forEach(async (element) => {
+      await element.updateOne({
+        $pull: { asignaturas: id },
+      });
+    });
     if (AsignaturaDelete) {
       if (await Asignatura.findById(id)) {
         next('Error en el borrado de la asignatura');
@@ -111,7 +119,6 @@ const getAlumnosAsignatura = async (req, res, next) => {
       asignatura: asignaturas.toString(),
     }).populate('alumn');
     const miAsignatura = await Asignatura.findById(asignaturas.toString());
-    //console.log(notasMiAsignatura);
     const notasAlumns = [];
     notasMiAsignatura.forEach((element) => {
       notasAlumns.push({ [element.alumn.name]: element.nota });

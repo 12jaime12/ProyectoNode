@@ -4,19 +4,25 @@ const User = require('../models/User.model');
 
 const create = async (req, res, next) => {
   try {
-    const newNota = new Notas(req.body);
+    await Notas.syncIndexes();
+    const { asignaturas } = req.user;
+    const asignaturaString = asignaturas.toString();
+    const newNota = new Notas({ ...req.body, asignatura: asignaturaString });
     const notaSave = await newNota.save();
-    const { alumn, asignatura } = req.body;
+    const { alumn } = req.body;
     const notaCreada = await Notas.findOne({
-      asignatura: req.body.asignatura,
+      asignatura: asignaturaString,
       alumn: req.body.alumn,
     });
+    console.log(notaCreada);
     const alumnNoUpdate = await User.findById(alumn);
     await alumnNoUpdate.updateOne({
       $push: { notas: notaCreada._id },
     });
-
-    const asignaturaNoUpdate = await Asignatura.findById(asignatura);
+    console.log(asignaturas.toString());
+    const asignaturaNoUpdate = await Asignatura.findById(
+      asignaturas.toString()
+    );
     await asignaturaNoUpdate.updateOne({
       $push: { nota: notaCreada._id },
     });
@@ -35,8 +41,16 @@ const getAll = async (req, res, next) => {
     const allNotas = await Notas.find({ alumn: _id }).populate(
       'alumn asignatura'
     ); //_id === req.user._id
+    const arrayAux = [];
+    allNotas.forEach((element) => {
+      console.log(1, element);
+      arrayAux.push({
+        [element.asignatura.year]: element.asignatura.curso,
+        [element.asignatura.name]: element.nota,
+      });
+    });
     if (allNotas) {
-      return res.status(200).json(allNotas);
+      return res.status(200).json(arrayAux);
     } else {
       return res.status(404).json('ese alumno no tiene notas');
     }
@@ -46,14 +60,17 @@ const getAll = async (req, res, next) => {
 };
 const getById = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; //id asignatura
     const nota = await Notas.findOne({
       alumn: req.user._id,
       asignatura: id,
     }).populate('alumn asignatura');
 
     if (nota) {
-      return res.status(200).json(nota);
+      return res.status(200).json({
+        [nota.asignatura.year]: nota.asignatura.curso,
+        [nota.asignatura.name]: nota.nota,
+      });
     } else {
       return res.status(404).json('Nota no encontrada');
     }
@@ -71,7 +88,7 @@ const getMedia = async (req, res, next) => {
     });
     const media = acc / allNotas.length;
     if (media) {
-      return res.status(200).json(media);
+      return res.status(200).json(`la nota media es: ${media}`);
     } else {
       return res.status(404).json('error al calcular media');
     }
