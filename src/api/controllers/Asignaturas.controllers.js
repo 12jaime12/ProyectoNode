@@ -106,7 +106,29 @@ const getNotasCurso = async (req, res, next) => {
 };
 const getAlumnosAsignatura = async (req, res, next) => {
   try {
-  } catch (error) {}
+    const { asignaturas } = req.user;
+    const notasMiAsignatura = await Notas.find({
+      asignatura: asignaturas.toString(),
+    }).populate('alumn');
+    const miAsignatura = await Asignatura.findById(asignaturas.toString());
+    //console.log(notasMiAsignatura);
+    const notasAlumns = [];
+    notasMiAsignatura.forEach((element) => {
+      notasAlumns.push({ [element.alumn.name]: element.nota });
+    });
+    if (notasAlumns) {
+      return res.status(200).json({
+        [miAsignatura.name]: miAsignatura.curso,
+        notasAlumns,
+      });
+    } else {
+      return res
+        .status(404)
+        .json('no se han conseguido las notas de tus alumnos');
+    }
+  } catch (error) {
+    return next(error);
+  }
 };
 
 module.exports = {
@@ -115,4 +137,5 @@ module.exports = {
   addTeacher,
   addAlumn,
   getNotasCurso,
+  getAlumnosAsignatura,
 };
