@@ -8,7 +8,7 @@ const create = async (req, res, next) => {
     const newAsignatura = new Asignatura(req.body);
     const AsignaturaSave = await newAsignatura.save();
     if (AsignaturaSave) {
-      return res.status(200).json(AsignaturaSave);
+      return res.status(200).json({ [AsignaturaSave.name]: 'creada' });
     } else {
       return res.status(404).json('error en la creacion de Asignatura');
     }
@@ -49,22 +49,22 @@ const addAlumn = async (req, res, next) => {
 
     const alumn = await User.findById(idAlumn);
     const asignaturaNoUpdate = await Asignatura.findById(id);
-
-    await asignaturaNoUpdate.updateOne({
-      $push: { alumn: alumn._id },
-    });
-
-    await alumn.updateOne({
-      $push: { asignaturas: asignaturaNoUpdate._id },
-    });
-
-    const asignaturaUpdate = await Asignatura.find({ alumn: alumn._id });
-    console.log(asignaturaUpdate);
-
-    if (asignaturaUpdate) {
-      return res.status(200).json(asignaturaUpdate);
+    if (!asignaturaNoUpdate.alumn.includes(alumn._id)) {
+      await asignaturaNoUpdate.updateOne({
+        $push: { alumn: alumn._id },
+      });
+      await alumn.updateOne({
+        $push: { asignaturas: asignaturaNoUpdate._id },
+      });
+      return res.status(200).json('alumno creado');
     } else {
-      return res.status(404).json('error al añadir alumno');
+      await asignaturaNoUpdate.updateOne({
+        $pull: { alumn: alumn._id },
+      });
+      await alumn.updateOne({
+        $pull: { asignaturas: asignaturaNoUpdate._id },
+      });
+      return res.status(200).json('alumno eliminado');
     }
   } catch (error) {
     return next(error);
@@ -77,19 +77,22 @@ const addTeacher = async (req, res, next) => {
     const asignaturaNoUpdate = await Asignatura.findById(id);
     const teacher = await User.findById(idteacher);
 
-    await asignaturaNoUpdate.updateOne({
-      $push: { teacher: teacher._id },
-    });
-
-    await teacher.updateOne({
-      $push: { asignaturas: asignaturaNoUpdate._id },
-    });
-
-    const asignaturaUpdate = await Asignatura.findById(id);
-    if (asignaturaUpdate.teacher.length > 0) {
-      return res.status(200).json(asignaturaUpdate);
+    if (!asignaturaNoUpdate.teacher.includes(teacher._id)) {
+      await asignaturaNoUpdate.updateOne({
+        $push: { teacher: teacher._id },
+      });
+      await teacher.updateOne({
+        $push: { asignaturas: asignaturaNoUpdate._id },
+      });
+      return res.status(200).json('profesor añadido');
     } else {
-      return res.status(404).json('no se ha introducido correctamente');
+      await asignaturaNoUpdate.updateOne({
+        $pull: { teacher: teacher._id },
+      });
+      await teacher.updateOne({
+        $pull: { asignaturas: asignaturaNoUpdate._id },
+      });
+      return res.status(200).json('profesor eliminado');
     }
   } catch (error) {
     return next(error);

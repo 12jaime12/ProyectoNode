@@ -27,7 +27,7 @@ const create = async (req, res, next) => {
       $push: { nota: notaCreada._id },
     });
     if (notaSave) {
-      return res.status(200).json(notaSave);
+      return res.status(200).json({ nota: 'creada' });
     } else {
       return res.status(404).json('no se ha podido crear la nota');
     }
@@ -88,7 +88,8 @@ const getMedia = async (req, res, next) => {
     });
     const media = acc / allNotas.length;
     if (media) {
-      return res.status(200).json(`la nota media es: ${media}`);
+      const mediaRound = media.toFixed(2);
+      return res.status(200).json(`la nota media es: ${mediaRound}`);
     } else {
       return res.status(404).json('error al calcular media');
     }

@@ -11,6 +11,7 @@ dotenv.config();
 const register = async (req, res, next) => {
   let catchImg = req.file?.path;
   try {
+    await User.syncIndexes();
     let confirmationCode = randomCode();
 
     const userExist = await User.findOne(
@@ -74,7 +75,8 @@ const sendCode = async (req, res, next) => {
       } else {
         console.log('email sent: ' + info.response);
         return res.status(200).json({
-          user: userDB,
+          user: 'creado',
+          email: 'enviado',
           confirmationCode: userDB.confirmationCode,
         });
       }
@@ -90,7 +92,8 @@ const verificarCodigo = async (req, res, next) => {
     const { code } = req.body;
     if (userFalse.confirmationCode === code) {
       await User.findByIdAndUpdate(id, { check: true });
-      return res.status(200).json(await User.findById(id));
+      const checkUser = await User.findById(id);
+      return res.status(200).json({ check: checkUser.check });
     } else {
       const userNotExist = await User.findByIdAndDelete(id);
       if (userNotExist) {
@@ -118,7 +121,6 @@ const loginUser = async (req, res, next) => {
 
     if (userToLogin) {
       if (bcrypt.compareSync(password, userToLogin.password)) {
-        const user = await User.findById(userToLogin._id);
         const token = generateToken(userToLogin._id, email);
         return res.status(200).json({
           user: {
@@ -177,7 +179,7 @@ const sendPassword = async (req, res, next) => {
       text: `${user.name} Aqui tienes tu contraseña de un solo uso ${password2} Recuerde cambiarla una vez inicies sesión`,
     };
 
-    transporter.sendMail(mailOptions, async (error, info) => {
+    transporter.sendMail(mailOptions, async (error) => {
       if (error) {
         return res.status(404).json('no se ha enviado el email');
       } else {
@@ -228,6 +230,7 @@ const ChangePassword = async (req, res, next) => {
 const update = async (req, res, next) => {
   let catchImg = req.file?.path;
   try {
+    await User.syncIndexes();
     const newUser = new User(req.body);
     if (req.file) {
       newUser.image = req.file.path;
@@ -236,15 +239,40 @@ const update = async (req, res, next) => {
     newUser.password = req.user.password;
     newUser.rol = req.user.rol;
     newUser.gender = req.user.gender;
-
-    const saveUser = await User.findByIdAndUpdate(req.user._id, newUser);
+    newUser.asignaturas = req.user.asignaturas;
+    newUser.notas = req.user.notas;
+    newUser.email = req.user.email;
+    newUser.confirmationCode = req.user.confirmationCode;
+    newUser.check = req.user.check;
+    await User.findByIdAndUpdate(req.user._id, newUser);
     if (req.file) {
       deleteImgCloudinary(req.user.image);
     }
 
-    const userUpdate = await User.findById(req.user._id);
+    const updateUser = await User.findById(req.user._id);
+    const updateKeys = Object.keys(req.body);
 
-    return res.status(200).json(userUpdate);
+    const testUpdate = [];
+    updateKeys.forEach((item) => {
+      if (updateUser[item] === req.body[item]) {
+        testUpdate.push({
+          [item]: true,
+        });
+      }
+    });
+
+    if (req.file) {
+      updateUser.image == req.file.path
+        ? testUpdate.push({
+            file: true,
+          })
+        : testUpdate.push({
+            file: false,
+          });
+    }
+    return res.status(200).json({
+      testUpdate,
+    });
   } catch (error) {
     deleteImgCloudinary(catchImg);
     return next(error);
@@ -271,8 +299,93 @@ const deleteUser = async (req, res, next) => {
     return next(error);
   }
 };
-const getUsuariosCurso = async (req, res, next) => {
+const getById = async (req, res, next) => {
   try {
+    const alumn = await User.findById(req.user._id).populate(
+      'asignaturas notas'
+    );
+    if (alumn) {
+      return res.status(200).json(alumn);
+    } else {
+      return res
+        .status(404)
+        .json('El usuario id introducido no corresponde a ningun usuario');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+const getAll = async (req, res, next) => {
+  try {
+    const allAlumns = await User.find({ rol: 'alumn' }).populate(
+      'asignaturas notas'
+    );
+    if (allAlumns) {
+      return res.status(200).json(allAlumns);
+    } else {
+      return res.status(404).json('no existen alumnos');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+const updateEmail = async (req, res, next) => {
+  try {
+    await User.syncIndexes();
+    let confirmationCode = randomCode();
+    const { email } = req.body;
+    if (req.user.email != email) {
+      await User.findByIdAndUpdate(req.user._id, {
+        email: email,
+        check: false,
+        confirmationCode: confirmationCode,
+      });
+      return res.redirect(
+        `http://localhost:8087/api/v1/user/sendNewCode/${req.user._id}`
+      );
+    } else {
+      return res.status(404).json('Debe meter un email distinto al anterior');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+const sendNewCode = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userDB = await User.findById(id);
+    const emailEnv = process.env.EMAIL;
+    const password = process.env.PASSWORD;
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailEnv,
+        pass: password,
+      },
+    });
+
+    const mailOptions = {
+      from: emailEnv,
+      to: userDB.email,
+      subject: 'Confirmation code virtualSchool',
+      text: `${userDB.name} has cambiado tu email de virtualSchool, aqui tienes tu nuevo código de verificación: ${userDB.confirmationCode} `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return res.status(404).json({
+          user: userDB,
+          confirmationCode: 'error, resend code',
+        });
+      } else {
+        console.log('email sent: ' + info.response);
+        return res.status(200).json({
+          email: 'enviado',
+          code: userDB.confirmationCode,
+        });
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -286,7 +399,10 @@ module.exports = {
   ChangePassword,
   update,
   deleteUser,
-  getUsuariosCurso,
   sendCode,
   sendPassword,
+  getById,
+  getAll,
+  sendNewCode,
+  updateEmail,
 };
