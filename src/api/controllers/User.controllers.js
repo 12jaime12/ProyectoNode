@@ -6,6 +6,8 @@ const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 const { generateToken } = require('../../utils/token');
 const randomPassword = require('../../utils/randomPassword');
+const Asignatura = require('../models/Asignaturas.model');
+const Notas = require('../models/Notas.model');
 dotenv.config();
 
 const register = async (req, res, next) => {
@@ -66,14 +68,14 @@ const sendCode = async (req, res, next) => {
       text: `Gracias ${userDB.name} por registrarte en virtualSchool, aqui tienes tu código de verificación: ${userDB.confirmationCode} `,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
+    transporter.sendMail(mailOptions, (error) => {
       if (error) {
         return res.status(404).json({
           user: userDB,
           confirmationCode: 'error, resend code',
         });
       } else {
-        console.log('email sent: ' + info.response);
+        //console.log('email sent: ' + info.response);
         return res.status(200).json({
           user: 'creado',
           email: 'enviado',
@@ -287,6 +289,31 @@ const deleteUser = async (req, res, next) => {
         next('Error en el borrado');
       } else {
         deleteImgCloudinary(image);
+
+        const asignatura = await Asignatura.find({ alumn: _id });
+        asignatura.forEach(async (element) => {
+          await element.updateOne({
+            $pull: { alumn: _id },
+          });
+        });
+
+        // const notasAlumn = await Notas.find({ alumn: _id });
+        // notasAlumn.forEach(async (element) => {
+        //   const asignaturasNotas = await Asignatura.find({ nota: element._id });
+        //   console.log(asignaturasNotas);
+        //   await asignaturasNotas.updateOne({
+        //     $pull: { nota: element._id },
+        //   });
+        //   await Notas.findByIdAndDelete(element._id);
+        // });
+
+        req.user.notas.forEach(async (element) => {
+          await Notas.findByIdAndDelete(element._id);
+          await Asignatura.updateMany(
+            { nota: element },
+            { $pull: { nota: element } }
+          );
+        });
       }
       return res.status(200).json({
         deleteObject: deleteUser,
