@@ -118,5 +118,34 @@ const deleteNotas = async (req, res, next) => {
     return next(error);
   }
 };
+const getNotasAnnoActual = async (req, res, next) => {
+  try {
+    const fechaActual = new Date();
+    const annoActual = fechaActual.getFullYear();
+    const alumnNotas = await Notas.find({ alumn: req.user._id }).populate(
+      'asignatura'
+    );
+    const arrayAux = [];
+    alumnNotas.forEach((element) => {
+      if (element.asignatura.year === annoActual) {
+        arrayAux.push(element);
+      }
+    });
+    if (arrayAux) {
+      return res.status(200).json(arrayAux);
+    } else {
+      return res.status(404).json('no hay asignaturas de el año actual');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
 
-module.exports = { create, getAll, getById, getMedia, deleteNotas };
+module.exports = {
+  create,
+  getAll,
+  getById,
+  getMedia,
+  deleteNotas,
+  getNotasAnnoActual,
+};

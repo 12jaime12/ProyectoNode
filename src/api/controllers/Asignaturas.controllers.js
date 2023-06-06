@@ -140,7 +140,30 @@ const getAlumnosAsignatura = async (req, res, next) => {
     return next(error);
   }
 };
-
+const getAllAsignaturas = async (req, res, next) => {
+  try {
+    const getAllAsignaturas = await Asignatura.find();
+    if (getAllAsignaturas) {
+      return res.status(200).json(getAllAsignaturas);
+    } else {
+      return res.status(404).json('error al encontrar asignaturas');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+const getAllAsignaturasAlumn = async (req, res, next) => {
+  try {
+    const getAllAsignaturas = await Asignatura.find({ alumn: req.user._id });
+    if (getAllAsignaturas) {
+      return res.status(200).json(getAllAsignaturas);
+    } else {
+      return res.status(404).json('error al encontrar asignaturas');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
 module.exports = {
   create,
   deleteAsignatura,
@@ -148,4 +171,6 @@ module.exports = {
   addAlumn,
   getNotasCurso,
   getAlumnosAsignatura,
+  getAllAsignaturas,
+  getAllAsignaturasAlumn,
 };

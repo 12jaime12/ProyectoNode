@@ -5,6 +5,7 @@ const {
   getById,
   getMedia,
   deleteNotas,
+  getNotasAnnoActual,
 } = require('../controllers/Notas.controllers');
 const {
   isAuthTeacher,
@@ -17,4 +18,5 @@ NotasRoutes.get('/allNotas', [isAuthAlumn], getAll);
 NotasRoutes.get('/oneNota/:id', [isAuthAlumn], getById);
 NotasRoutes.get('/media', [isAuthAlumn], getMedia);
 NotasRoutes.delete('/delete/:id', [isAuthTeacher], deleteNotas);
+NotasRoutes.get('/getNotasAnnoActual', [isAuthAlumn], getNotasAnnoActual);
 module.exports = NotasRoutes;

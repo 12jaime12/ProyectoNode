@@ -6,6 +6,8 @@ const {
   addTeacher,
   getNotasCurso,
   getAlumnosAsignatura,
+  getAllAsignaturas,
+  getAllAsignaturasAlumn,
 } = require('../controllers/Asignaturas.controllers');
 const {
   isAuthAdmin,
@@ -20,5 +22,11 @@ AsignaturasRoutes.post('/addAlumn/:id', [isAuthAdmin], addAlumn);
 AsignaturasRoutes.post('/addTeacher/:id', [isAuthAdmin], addTeacher);
 AsignaturasRoutes.get('/curso/:curso', [isAuthAlumn], getNotasCurso);
 AsignaturasRoutes.get('/alumns', [isAuthTeacher], getAlumnosAsignatura);
+AsignaturasRoutes.get('/getAllAsignaturas', [isAuthAdmin], getAllAsignaturas);
+AsignaturasRoutes.get(
+  '/getAllAsignaturasAlumn',
+  [isAuthAlumn],
+  getAllAsignaturasAlumn
+);
 
 module.exports = AsignaturasRoutes;

@@ -13,6 +13,9 @@ const {
   getAll,
   sendNewCode,
   updateEmail,
+  getAllAlumn,
+  getAllTeacher,
+  changeRol,
 } = require('../controllers/User.controllers');
 const { upload } = require('../../middleware/files.middleware');
 const {
@@ -32,6 +35,9 @@ UserRoutes.patch('/update', [isAuth], upload.single('image'), update);
 UserRoutes.get('/getById', [isAuthAlumn], getById);
 UserRoutes.get('/getAll', [isAuthAdmin], getAll);
 UserRoutes.get('/updateEmail', [isAuth], updateEmail);
+UserRoutes.get('/getAllAlumn', [isAuthAdmin], getAllAlumn);
+UserRoutes.get('/getAllTeacher', [isAuthAdmin], getAllTeacher);
+UserRoutes.patch('/changeRol/:id', [isAuthAdmin], changeRol);
 //-------------------------redirects------------------------
 
 UserRoutes.get('/register/sendMail/:id', sendCode);

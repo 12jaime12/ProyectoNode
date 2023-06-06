@@ -417,6 +417,46 @@ const sendNewCode = async (req, res, next) => {
     return next(error);
   }
 };
+const getAllAlumn = async (req, res, next) => {
+  try {
+    const allUser = await User.find({ rol: 'alumn' });
+    if (allUser) {
+      return res.status(200).json(allUser);
+    } else {
+      return res.status(404).json('error al encontrar alumnos');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+const getAllTeacher = async (req, res, next) => {
+  try {
+    const allTeacher = await User.find({ rol: 'teacher' });
+    if (allTeacher) {
+      return res.status(200).json(allTeacher);
+    } else {
+      return res.status(404).json('error al encontrar teacher');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+const changeRol = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+
+    user.rol = 'teacher';
+
+    if (user.rol === 'teacher') {
+      return res.status(200).json(user);
+    } else {
+      return res.status(404).json('error al actualizar rol');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
 
 module.exports = {
   register,
@@ -432,4 +472,7 @@ module.exports = {
   getAll,
   sendNewCode,
   updateEmail,
+  getAllAlumn,
+  getAllTeacher,
+  changeRol,
 };
