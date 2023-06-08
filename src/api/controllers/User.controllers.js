@@ -104,7 +104,9 @@ const verificarCodigo = async (req, res, next) => {
         return res.status(404).json(error.message);
       }
       const checkUser = await User.findById(id);
-      return res.status(200).json({ check: checkUser.check });
+      return res.status(200).json({
+        testCheckOk: checkUser.check == true ? true : false,
+      });
     } else {
       const userNotExist = await User.findByIdAndDelete(id);
       if (userNotExist) {
@@ -112,6 +114,13 @@ const verificarCodigo = async (req, res, next) => {
           next('Error en el borrado');
         } else {
           deleteImgCloudinary(userFalse.image);
+          return res.status(200).json({
+            userNotExist,
+            check: false,
+            delete: (await User.findById(userNotExist._id))
+              ? 'error delete user'
+              : 'ok delete user',
+          });
         }
         return res.status(200).json({
           deleteObject: deleteUser,
@@ -463,6 +472,28 @@ const changeRol = async (req, res, next) => {
     return next(error);
   }
 };
+const autoLogin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const userDB = await User.findOne({ email });
+
+    if (userDB) {
+      if ((password, userDB.password)) {
+        const token = generateToken(userDB._id, email);
+        return res.status(200).json({
+          user: userDB,
+          token,
+        });
+      } else {
+        return res.status(404).json('password dont match');
+      }
+    } else {
+      return res.status(404).json('User no register');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
 
 module.exports = {
   register,
@@ -481,4 +512,5 @@ module.exports = {
   getAllAlumn,
   getAllTeacher,
   changeRol,
+  autoLogin,
 };

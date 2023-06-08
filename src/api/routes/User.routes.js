@@ -16,6 +16,7 @@ const {
   getAllAlumn,
   getAllTeacher,
   changeRol,
+  autoLogin,
 } = require('../controllers/User.controllers');
 const { upload } = require('../../middleware/files.middleware');
 const {
@@ -38,6 +39,7 @@ UserRoutes.get('/updateEmail', [isAuth], updateEmail);
 UserRoutes.get('/getAllAlumn', [isAuthAdmin], getAllAlumn);
 UserRoutes.get('/getAllTeacher', [isAuthAdmin], getAllTeacher);
 UserRoutes.patch('/changeRol/:id', [isAuthAdmin], changeRol);
+UserRoutes.post('/login/autologin', autoLogin);
 //-------------------------redirects------------------------
 
 UserRoutes.post('/register/sendMail/:id', sendCode);
