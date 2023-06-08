@@ -21,7 +21,11 @@ const register = async (req, res, next) => {
       { name: req.body.name }
     );
     if (!userExist) {
-      const newUser = new User({ ...req.body, confirmationCode });
+      console.log(req.body);
+      const newUser = new User({
+        ...req.body,
+        confirmationCode,
+      });
       if (req.file) {
         newUser.image = req.file.path;
       } else {
@@ -33,6 +37,7 @@ const register = async (req, res, next) => {
 
       if (userSave) {
         return res.redirect(
+          307,
           `http://localhost:8087/api/v1/user/register/sendMail/${userSave._id}`
         );
       }
@@ -41,7 +46,6 @@ const register = async (req, res, next) => {
       return res.status(409).json('this user already exist');
     }
   } catch (error) {
-    deleteImgCloudinary(catchImg);
     return next(error);
   }
 };
@@ -77,8 +81,7 @@ const sendCode = async (req, res, next) => {
       } else {
         //console.log('email sent: ' + info.response);
         return res.status(200).json({
-          user: 'creado',
-          email: 'enviado',
+          user: userDB,
           confirmationCode: userDB.confirmationCode,
         });
       }
@@ -90,10 +93,16 @@ const sendCode = async (req, res, next) => {
 const verificarCodigo = async (req, res, next) => {
   try {
     const { id } = req.params;
+    console.log(id);
     const userFalse = await User.findById(id);
+    console.log(userFalse);
     const { code } = req.body;
     if (userFalse.confirmationCode === code) {
-      await User.findByIdAndUpdate(id, { check: true });
+      try {
+        await User.findByIdAndUpdate(id, { check: true });
+      } catch (error) {
+        return res.status(404).json(error.message);
+      }
       const checkUser = await User.findById(id);
       return res.status(200).json({ check: checkUser.check });
     } else {
@@ -125,10 +134,7 @@ const loginUser = async (req, res, next) => {
       if (bcrypt.compareSync(password, userToLogin.password)) {
         const token = generateToken(userToLogin._id, email);
         return res.status(200).json({
-          user: {
-            email,
-            _id: userToLogin._id,
-          },
+          user: userToLogin,
           token,
         });
       } else {

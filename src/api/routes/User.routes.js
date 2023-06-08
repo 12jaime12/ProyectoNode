@@ -25,7 +25,7 @@ const {
 } = require('../../middleware/auth.middleware');
 const UserRoutes = express.Router();
 
-UserRoutes.get('/register', upload.single('image'), register);
+UserRoutes.post('/register', upload.single('image'), register);
 UserRoutes.post('/confirm/:id', verificarCodigo);
 UserRoutes.post('/login', loginUser);
 UserRoutes.delete('/', [isAuth], deleteUser);
@@ -40,7 +40,7 @@ UserRoutes.get('/getAllTeacher', [isAuthAdmin], getAllTeacher);
 UserRoutes.patch('/changeRol/:id', [isAuthAdmin], changeRol);
 //-------------------------redirects------------------------
 
-UserRoutes.get('/register/sendMail/:id', sendCode);
+UserRoutes.post('/register/sendMail/:id', sendCode);
 UserRoutes.get('/sendPassword/:id', sendPassword);
 UserRoutes.get('/sendNewCode/:id', sendNewCode);
 
