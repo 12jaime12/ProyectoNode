@@ -162,6 +162,7 @@ const forgotPassword = async (req, res, next) => {
     const userDb = await User.findOne({ email });
     if (userDb) {
       return res.redirect(
+        307,
         `http://localhost:8087/api/v1/user/sendPassword/${userDb._id}`
       );
     } else {
@@ -494,7 +495,24 @@ const autoLogin = async (req, res, next) => {
     return next(error);
   }
 };
-
+const getCursoActual = async (req, res, next) => {
+  try {
+    const fechaActual = new Date();
+    const annoActual = fechaActual.getFullYear();
+    const id = req.user._id;
+    const asignaturaActual = await Asignatura.findOne({
+      year: annoActual,
+      alumn: id,
+    });
+    if (asignaturaActual) {
+      return res.status(200).json(asignaturaActual.curso);
+    } else {
+      return res.status(404).json('error al encontrar asignaturas actuales');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
 module.exports = {
   register,
   verificarCodigo,
@@ -513,4 +531,5 @@ module.exports = {
   getAllTeacher,
   changeRol,
   autoLogin,
+  getCursoActual,
 };

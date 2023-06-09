@@ -17,6 +17,7 @@ const {
   getAllTeacher,
   changeRol,
   autoLogin,
+  getCursoActual,
 } = require('../controllers/User.controllers');
 const { upload } = require('../../middleware/files.middleware');
 const {
@@ -31,7 +32,7 @@ UserRoutes.post('/confirm/:id', verificarCodigo);
 UserRoutes.post('/login', loginUser);
 UserRoutes.delete('/', [isAuth], deleteUser);
 UserRoutes.patch('/', [isAuth], ChangePassword);
-UserRoutes.get('/forgotpassword', forgotPassword);
+UserRoutes.patch('/forgotpassword', forgotPassword);
 UserRoutes.patch('/update', [isAuth], upload.single('image'), update);
 UserRoutes.get('/getById', [isAuthAlumn], getById);
 UserRoutes.get('/getAll', [isAuthAdmin], getAll);
@@ -40,10 +41,11 @@ UserRoutes.get('/getAllAlumn', [isAuthAdmin], getAllAlumn);
 UserRoutes.get('/getAllTeacher', [isAuthAdmin], getAllTeacher);
 UserRoutes.patch('/changeRol/:id', [isAuthAdmin], changeRol);
 UserRoutes.post('/login/autologin', autoLogin);
+UserRoutes.get('/getCurso', [isAuthAlumn], getCursoActual);
 //-------------------------redirects------------------------
 
 UserRoutes.post('/register/sendMail/:id', sendCode);
-UserRoutes.get('/sendPassword/:id', sendPassword);
+UserRoutes.patch('/sendPassword/:id', sendPassword);
 UserRoutes.get('/sendNewCode/:id', sendNewCode);
 
 module.exports = UserRoutes;
