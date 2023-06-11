@@ -107,7 +107,10 @@ const getNotasCurso = async (req, res, next) => {
     const arrayAux = [];
     findNotas.forEach((element) => {
       if (element.asignatura.curso === curso) {
-        arrayAux.push({ [element.asignatura.name]: element.nota });
+        arrayAux.push({
+          asignatura: element.asignatura.name,
+          nota: element.nota,
+        });
       }
     });
     return res.status(200).json(arrayAux);
@@ -124,11 +127,12 @@ const getAlumnosAsignatura = async (req, res, next) => {
     const miAsignatura = await Asignatura.findById(asignaturas.toString());
     const notasAlumns = [];
     notasMiAsignatura.forEach((element) => {
-      notasAlumns.push({ [element.alumn.name]: element.nota });
+      notasAlumns.push({ nota: element.nota, name: element.alumn.name });
     });
     if (notasAlumns) {
       return res.status(200).json({
-        [miAsignatura.name]: miAsignatura.curso,
+        curso: miAsignatura.curso,
+        name: miAsignatura.name,
         notasAlumns,
       });
     } else {

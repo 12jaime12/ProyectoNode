@@ -447,7 +447,9 @@ const getAllAlumn = async (req, res, next) => {
 };
 const getAllTeacher = async (req, res, next) => {
   try {
-    const allTeacher = await User.find({ rol: 'teacher' });
+    const allTeacher = await User.find({ rol: 'teacher' }).populate(
+      'asignaturas'
+    );
     if (allTeacher) {
       return res.status(200).json(allTeacher);
     } else {
@@ -513,6 +515,20 @@ const getCursoActual = async (req, res, next) => {
     return next(error);
   }
 };
+const getMisAlumns = async (req, res, next) => {
+  try {
+    const teacher = await User.findById(req.user._id).populate('asignaturas');
+    const idAsig = teacher.asignaturas[0]._id.toString();
+    const asignatura = await Asignatura.findById(idAsig).populate('alumn');
+    if (asignatura) {
+      return res.status(200).json(asignatura);
+    } else {
+      return res.status(404).json('no existe asignatura');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
 module.exports = {
   register,
   verificarCodigo,
@@ -532,4 +548,5 @@ module.exports = {
   changeRol,
   autoLogin,
   getCursoActual,
+  getMisAlumns,
 };

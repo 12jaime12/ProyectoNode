@@ -18,12 +18,14 @@ const {
   changeRol,
   autoLogin,
   getCursoActual,
+  getMisAlumns,
 } = require('../controllers/User.controllers');
 const { upload } = require('../../middleware/files.middleware');
 const {
   isAuth,
   isAuthAlumn,
   isAuthAdmin,
+  isAuthTeacher,
 } = require('../../middleware/auth.middleware');
 const UserRoutes = express.Router();
 
@@ -42,6 +44,7 @@ UserRoutes.get('/getAllTeacher', [isAuthAdmin], getAllTeacher);
 UserRoutes.patch('/changeRol/:id', [isAuthAdmin], changeRol);
 UserRoutes.post('/login/autologin', autoLogin);
 UserRoutes.get('/getCurso', [isAuthAlumn], getCursoActual);
+UserRoutes.get('/getMisAlumns', [isAuthTeacher], getMisAlumns);
 //-------------------------redirects------------------------
 
 UserRoutes.post('/register/sendMail/:id', sendCode);

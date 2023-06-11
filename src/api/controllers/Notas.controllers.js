@@ -68,8 +68,10 @@ const getById = async (req, res, next) => {
 
     if (nota) {
       return res.status(200).json({
-        [nota.asignatura.year]: nota.asignatura.curso,
-        [nota.asignatura.name]: nota.nota,
+        curso: nota.asignatura.curso,
+        nota: nota.nota,
+        año: nota.asignatura.year,
+        name: nota.asignatura.name,
       });
     } else {
       return res.status(404).json('Nota no encontrada');
@@ -123,7 +125,7 @@ const getNotasAnnoActual = async (req, res, next) => {
     const fechaActual = new Date();
     const annoActual = fechaActual.getFullYear();
     const alumnNotas = await Notas.find({ alumn: req.user._id }).populate(
-      'asignatura'
+      'asignatura alumn'
     );
     const arrayAux = [];
     alumnNotas.forEach((element) => {
