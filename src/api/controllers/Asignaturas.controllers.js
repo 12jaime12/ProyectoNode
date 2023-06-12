@@ -127,7 +127,13 @@ const getAlumnosAsignatura = async (req, res, next) => {
     const miAsignatura = await Asignatura.findById(asignaturas.toString());
     const notasAlumns = [];
     notasMiAsignatura.forEach((element) => {
-      notasAlumns.push({ nota: element.nota, name: element.alumn.name });
+      console.log(element);
+      notasAlumns.push({
+        _id: element.alumn._id,
+        nota: element.nota,
+        name: element.alumn.name,
+        image: element.alumn.image,
+      });
     });
     if (notasAlumns) {
       return res.status(200).json({
@@ -168,6 +174,19 @@ const getAllAsignaturasAlumn = async (req, res, next) => {
     return next(error);
   }
 };
+const getById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const asignatura = await Asignatura.findById(id);
+    if (asignatura) {
+      return res.status(200).json(asignatura);
+    } else {
+      return res.status(404).json('error al encontrar la asignatura');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
 module.exports = {
   create,
   deleteAsignatura,
@@ -177,4 +196,5 @@ module.exports = {
   getAlumnosAsignatura,
   getAllAsignaturas,
   getAllAsignaturasAlumn,
+  getById,
 };

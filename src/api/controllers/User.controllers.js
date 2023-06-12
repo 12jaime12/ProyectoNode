@@ -515,6 +515,26 @@ const getCursoActual = async (req, res, next) => {
     return next(error);
   }
 };
+const getCursoTodosAlumns = async (req, res, next) => {
+  try {
+    const fechaActual = new Date();
+    const annoActual = fechaActual.getFullYear();
+    const alumns = await User.find({ rol: 'alumn' }).populate('asignaturas');
+    const arrayAux = [];
+    alumns.forEach((element) => {
+      element.asignaturas.forEach((asignatura) => {
+        if (asignatura.year === annoActual && asignatura.curso === '2ESO') {
+          if (!arrayAux.includes(element)) {
+            arrayAux.push(element);
+          }
+        }
+      });
+    });
+    console.log(arrayAux);
+  } catch (error) {
+    return next(error);
+  }
+};
 const getMisAlumns = async (req, res, next) => {
   try {
     const teacher = await User.findById(req.user._id).populate('asignaturas');
@@ -549,4 +569,5 @@ module.exports = {
   autoLogin,
   getCursoActual,
   getMisAlumns,
+  getCursoTodosAlumns,
 };

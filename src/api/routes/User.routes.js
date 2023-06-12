@@ -19,6 +19,7 @@ const {
   autoLogin,
   getCursoActual,
   getMisAlumns,
+  getCursoTodosAlumns,
 } = require('../controllers/User.controllers');
 const { upload } = require('../../middleware/files.middleware');
 const {
@@ -45,6 +46,7 @@ UserRoutes.patch('/changeRol/:id', [isAuthAdmin], changeRol);
 UserRoutes.post('/login/autologin', autoLogin);
 UserRoutes.get('/getCurso', [isAuthAlumn], getCursoActual);
 UserRoutes.get('/getMisAlumns', [isAuthTeacher], getMisAlumns);
+UserRoutes.get('/getCursoAllAlumns', [isAuthAdmin], getCursoTodosAlumns);
 //-------------------------redirects------------------------
 
 UserRoutes.post('/register/sendMail/:id', sendCode);

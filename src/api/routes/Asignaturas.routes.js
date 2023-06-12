@@ -8,6 +8,7 @@ const {
   getAlumnosAsignatura,
   getAllAsignaturas,
   getAllAsignaturasAlumn,
+  getById,
 } = require('../controllers/Asignaturas.controllers');
 const {
   isAuthAdmin,
@@ -28,5 +29,6 @@ AsignaturasRoutes.get(
   [isAuthAlumn],
   getAllAsignaturasAlumn
 );
+AsignaturasRoutes.get('/getById/:id', [isAuthAdmin], getById);
 
 module.exports = AsignaturasRoutes;

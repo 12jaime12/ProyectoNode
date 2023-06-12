@@ -101,16 +101,26 @@ const getMedia = async (req, res, next) => {
 };
 const deleteNotas = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const notaToDelete = await Notas.findByIdAndDelete(id);
+    const { id } = req.params; //id alumn
+    const idAsig = req.user.asignaturas[0]._id;
+
+    const nota = await Notas.findOne({
+      alumn: id,
+      asignatura: idAsig.toString(),
+    });
+    const idNota = nota._id;
+    console.log(nota);
+    const idNotaString = idNota;
+    console.log(idNotaString);
+    const notaToDelete = await Notas.findByIdAndDelete(idNota);
     if (notaToDelete) {
-      const alumn = await User.findOne({ notas: id });
+      const alumn = await User.findOne({ notas: idNota });
       await alumn.updateOne({
-        $pull: { notas: id },
+        $pull: { notas: idNota },
       });
-      const asignatura1 = await Asignatura.findOne({ nota: id });
+      const asignatura1 = await Asignatura.findOne({ nota: idNota });
       await asignatura1.updateOne({
-        $pull: { nota: id },
+        $pull: { nota: idNota },
       });
       return res.status(200).json('ok delete');
     } else {
@@ -142,7 +152,23 @@ const getNotasAnnoActual = async (req, res, next) => {
     return next(error);
   }
 };
+const getMisNotas = async (req, res, next) => {
+  try {
+    const teacher = await User.findById(req.user._id).populate('asignaturas');
+    const id = teacher.asignaturas;
 
+    const notas = await Notas.find({
+      asignatura: id,
+    }).populate('asignatura alumn');
+    if (notas) {
+      return res.status(200).json(notas);
+    } else {
+      return res.status(404).json('no hay notas');
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
 module.exports = {
   create,
   getAll,
@@ -150,4 +176,5 @@ module.exports = {
   getMedia,
   deleteNotas,
   getNotasAnnoActual,
+  getMisNotas,
 };
