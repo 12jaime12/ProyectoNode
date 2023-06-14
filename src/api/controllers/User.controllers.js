@@ -38,7 +38,7 @@ const register = async (req, res, next) => {
       if (userSave) {
         return res.redirect(
           307,
-          `http://localhost:8087/api/v1/user/register/sendMail/${userSave._id}`
+          `https://proyecto-node-theta.vercel.app/api/v1/user/register/sendMail/${userSave._id}`
         );
       }
     } else {
@@ -163,7 +163,7 @@ const forgotPassword = async (req, res, next) => {
     if (userDb) {
       return res.redirect(
         307,
-        `http://localhost:8087/api/v1/user/sendPassword/${userDb._id}`
+        `https://proyecto-node-theta.vercel.app/api/v1/user/sendPassword/${userDb._id}`
       );
     } else {
       return res.status(404).json('usuario no registrado');
@@ -384,7 +384,7 @@ const updateEmail = async (req, res, next) => {
         confirmationCode: confirmationCode,
       });
       return res.redirect(
-        `http://localhost:8087/api/v1/user/sendNewCode/${req.user._id}`
+        `https://proyecto-node-theta.vercel.app/api/v1/user/sendNewCode/${req.user._id}`
       );
     } else {
       return res.status(404).json('Debe meter un email distinto al anterior');
