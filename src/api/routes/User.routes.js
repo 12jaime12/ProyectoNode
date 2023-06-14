@@ -34,7 +34,7 @@ UserRoutes.post('/register', upload.single('image'), register);
 UserRoutes.post('/confirm/:id', verificarCodigo);
 UserRoutes.post('/login', loginUser);
 UserRoutes.delete('/', [isAuth], deleteUser);
-UserRoutes.patch('/', [isAuth], ChangePassword);
+UserRoutes.patch('/changePassword', [isAuth], ChangePassword);
 UserRoutes.patch('/forgotpassword', forgotPassword);
 UserRoutes.patch('/update', [isAuth], upload.single('image'), update);
 UserRoutes.get('/getById', [isAuthAlumn], getById);
